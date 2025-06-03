@@ -30,4 +30,23 @@ class ChatbotTopic(models.Model):
         verbose_name_plural = _('Chatbot Topics')
 
     def __str__(self):
-        return f"{self.label} ({self.language})" 
+        return f"{self.label} ({self.language})"
+
+class LegalPage(models.Model):
+    PAGE_CHOICES = [
+        ('impressum', _('Impressum')),
+        ('privacy', _('Privacy Policy')),
+        ('terms', _('Terms & Conditions')),
+    ]
+    page_type = models.CharField(max_length=20, choices=PAGE_CHOICES)
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    language = models.CharField(max_length=10, choices=[('en', 'English'), ('ro', 'Română'), ('de', 'Deutsch')], default='en')
+
+    class Meta:
+        unique_together = ('page_type', 'language')
+        verbose_name = _('Legal Page')
+        verbose_name_plural = _('Legal Pages')
+
+    def __str__(self):
+        return f"{self.get_page_type_display()} ({self.language})" 

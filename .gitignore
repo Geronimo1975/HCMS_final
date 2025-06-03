@@ -1,4 +1,11 @@
 # Python
+.DeliveryDriverPortal/
+.DeliveryDriverPortal.zip
+.Example/
+.Example.zip
+
+
+
 __pycache__/
 *.py[cod]
 *$py.class
