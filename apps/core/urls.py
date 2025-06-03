@@ -5,4 +5,5 @@ app_name = 'core'
 
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
+    path('api/chatbot/', views.ChatbotRAGView.as_view(), name='chatbot_rag'),
 ] 
