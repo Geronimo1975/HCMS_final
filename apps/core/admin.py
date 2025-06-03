@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Document, DocumentChunk
+from .models import Document, DocumentChunk, ChatbotTopic
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
@@ -11,4 +11,11 @@ class DocumentAdmin(admin.ModelAdmin):
 class DocumentChunkAdmin(admin.ModelAdmin):
     list_display = ('document', 'order')
     search_fields = ('chunk',)
-    ordering = ('document', 'order') 
+    ordering = ('document', 'order')
+
+@admin.register(ChatbotTopic)
+class ChatbotTopicAdmin(admin.ModelAdmin):
+    list_display = ('label', 'language', 'order', 'is_active')
+    list_filter = ('language', 'is_active')
+    search_fields = ('label', 'question')
+    ordering = ('language', 'order', 'label') 

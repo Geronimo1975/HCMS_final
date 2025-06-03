@@ -1,6 +1,6 @@
-<div x-data="{ open: false, messages: [
-    { from: 'bot', text: '{% trans "Bun venit la SalonManager! Cu ce vă pot ajuta?" %}' }
-], input: '' }" class="fixed bottom-6 right-6 z-50">
+{% load i18n %}
+{% load static %}
+<div x-data="chatbotComponent('{{ LANGUAGE_CODE }}')" class="fixed bottom-6 right-6 z-50">
     <!-- Floating Button -->
     <button @click="open = !open" class="bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary-400">
         <svg x-show="!open" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
@@ -9,19 +9,98 @@
     <!-- Chat Window -->
     <div x-show="open" x-transition class="w-80 h-96 bg-white dark:bg-gray-900 rounded-lg shadow-lg flex flex-col mt-4">
         <div class="flex items-center justify-between px-4 py-2 bg-primary-600 rounded-t-lg">
-            <span class="text-white font-semibold">SalonManager Chatbot</span>
+            <div class="flex items-center space-x-2">
+                <img src="{% static 'logo.png' %}" alt="Logo" class="h-8 w-8 rounded-full bg-white p-1 shadow" />
+                <span class="text-white font-semibold">SalonManager Chatbot</span>
+            </div>
             <button @click="open = false" class="text-white hover:text-gray-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-2">
             <template x-for="(msg, idx) in messages" :key="idx">
-                <div :class="msg.from === 'bot' ? 'text-left' : 'text-right'">
+                <div class="flex items-end" :class="msg.from === 'bot' ? 'justify-start' : 'justify-end'">
+                    <template x-if="msg.from === 'bot'">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Bot" class="h-8 w-8 rounded-full mr-2 border-2 border-primary-600 dark:border-primary-400" />
+                    </template>
                     <span :class="msg.from === 'bot' ? 'inline-block bg-primary-100 text-primary-800 dark:bg-primary-700 dark:text-white px-3 py-2 rounded-lg' : 'inline-block bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-lg'" x-text="msg.text"></span>
+                    <template x-if="msg.from === 'user'">
+                        <img src="https://randomuser.me/api/portraits/men/85.jpg" alt="User" class="h-8 w-8 rounded-full ml-2 border-2 border-gray-400 dark:border-gray-600" />
+                    </template>
                 </div>
             </template>
         </div>
-        <form @submit.prevent="if(input.trim()){messages.push({from:'user',text:input});messages.push({from:'bot',text:'{% trans 'Mulțumim pentru mesaj! Un operator vă va răspunde în curând.' %}'});input='';$nextTick(()=>{$refs.input.focus();});}" class="p-2 border-t border-gray-200 dark:border-gray-700 flex">
-            <input x-ref="input" x-model="input" type="text" class="flex-1 rounded-l-lg px-3 py-2 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:bg-gray-800 dark:text-white" placeholder="{% trans 'Scrieți un mesaj...' %}" autocomplete="off">
+        <!-- Preset Topics -->
+        <div class="px-4 pb-2 flex flex-wrap gap-2">
+            <template x-for="topic in topics[lang]" :key="topic.label">
+                <button @click="input = topic.question; sendMessage()" class="bg-primary-100 text-primary-700 dark:bg-primary-800 dark:text-primary-100 px-3 py-1 rounded-full text-xs font-medium hover:bg-primary-200 dark:hover:bg-primary-700 transition">{{ topic.label }}</button>
+            </template>
+        </div>
+        <form @submit.prevent="sendMessage()" class="p-2 border-t border-gray-200 dark:border-gray-700 flex">
+            <input x-ref="input" x-model="input" type="text" class="flex-1 rounded-l-lg px-3 py-2 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:bg-gray-800 dark:text-white" :placeholder="placeholders[lang]" autocomplete="off">
             <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-r-lg">&rarr;</button>
         </form>
     </div>
-</div> 
+</div>
+<script>
+function chatbotComponent(lang) {
+    return {
+        open: false,
+        lang: lang || 'ro',
+        input: '',
+        messages: [
+            { from: 'bot', text: {
+                ro: 'Bun venit la SalonManager! Cu ce vă pot ajuta?',
+                en: 'Welcome to SalonManager! How can I help you?',
+                de: 'Willkommen bei SalonManager! Wie kann ich Ihnen helfen?'
+            }[lang || 'ro'] }
+        ],
+        topics: {
+            ro: [
+                { label: 'Programare', question: 'Cum pot face o programare?' },
+                { label: 'Prețuri', question: 'Care sunt prețurile pentru servicii?' },
+                { label: 'Servicii', question: 'Ce servicii oferiți?' },
+                { label: 'Contact', question: 'Cum pot contacta salonul?' }
+            ],
+            en: [
+                { label: 'Booking', question: 'How can I make a booking?' },
+                { label: 'Prices', question: 'What are the prices for services?' },
+                { label: 'Services', question: 'What services do you offer?' },
+                { label: 'Contact', question: 'How can I contact the salon?' }
+            ],
+            de: [
+                { label: 'Termin', question: 'Wie kann ich einen Termin buchen?' },
+                { label: 'Preise', question: 'Was sind die Preise für die Dienstleistungen?' },
+                { label: 'Dienstleistungen', question: 'Welche Dienstleistungen bieten Sie an?' },
+                { label: 'Kontakt', question: 'Wie kann ich den Salon kontaktieren?' }
+            ]
+        },
+        placeholders: {
+            ro: 'Scrieți un mesaj...',
+            en: 'Type a message...',
+            de: 'Nachricht eingeben...'
+        },
+        async sendMessage() {
+            if (!this.input.trim()) return;
+            this.messages.push({from:'user', text:this.input});
+            let question = this.input;
+            this.input = '';
+            this.messages.push({from:'bot', text:'...'});
+            let idx = this.messages.length - 1;
+            try {
+                let resp = await fetch('/api/chatbot/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({question})
+                });
+                let data = await resp.json();
+                this.messages[idx].text = data.answer;
+            } catch(e) {
+                this.messages[idx].text = {
+                    ro: 'A apărut o eroare. Încercați din nou.',
+                    en: 'An error occurred. Please try again.',
+                    de: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'
+                }[this.lang];
+            }
+        }
+    }
+}
+</script> 

@@ -25,6 +25,9 @@ venv/
 env/
 ENV/
 .env
+.cursorignore
+.cursorrules
+.cursor-settings.json
 .venv
 env.bak/
 venv.bak/

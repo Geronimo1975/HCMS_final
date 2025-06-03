@@ -26,33 +26,26 @@ class BookingListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
+        # Return all bookings for pagination compatibility
+        return Booking.objects.filter(customer=self.request.user).select_related('service', 'provider', 'business')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         now = timezone.now()
-        upcoming = Booking.objects.filter(
+        context['upcoming_bookings'] = Booking.objects.filter(
             customer=self.request.user,
             start_time__gte=now,
             status__in=[BookingStatus.PENDING, BookingStatus.CONFIRMED]
         ).select_related('service', 'provider', 'business')
-        
-        past = Booking.objects.filter(
-            Q(start_time__lt=now) | 
+        context['past_bookings'] = Booking.objects.filter(
+            Q(start_time__lt=now) |
             Q(status__in=[
-                BookingStatus.COMPLETED, 
-                BookingStatus.CANCELLED, 
+                BookingStatus.COMPLETED,
+                BookingStatus.CANCELLED,
                 BookingStatus.NO_SHOW
             ]),
             customer=self.request.user
         ).select_related('service', 'provider', 'business')
-        
-        return {
-            'upcoming': upcoming,
-            'past': past
-        }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        queryset = self.get_queryset()
-        context['upcoming_bookings'] = queryset['upcoming']
-        context['past_bookings'] = queryset['past']
         return context
 
 
