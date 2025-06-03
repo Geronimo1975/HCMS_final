@@ -1,0 +1,64 @@
+<div id="cookie-banner" class="fixed bottom-0 left-0 w-full bg-white shadow-lg z-50 p-4 md:p-6 flex flex-col md:flex-row items-center justify-between" x-data="{ open: true, lang: 'de', details: false }" x-show="open" x-cloak>
+  <div>
+    <h2 class="font-bold text-lg mb-2" x-text="lang === 'de' ? 'Cookie-Einstellungen' : 'Cookie Settings'"></h2>
+    <p class="text-sm mb-2" x-text="lang === 'de' ? 'Wir verwenden Cookies, um Ihre Erfahrung zu verbessern.' : 'We use cookies to improve your experience.'"></p>
+    <button @click="details = !details" class="text-blue-600 underline text-xs mb-2">
+      <span x-text="lang === 'de' ? 'Details anzeigen' : 'Show details'"></span>
+    </button>
+    <div x-show="details" class="text-xs">
+      <ul>
+        <li><strong>Essential:</strong> <span x-text="lang === 'de' ? 'Erforderlich für die Website.' : 'Required for the website.'"></span></li>
+        <li><strong>Analytics:</strong> <span x-text="lang === 'de' ? 'Hilft uns, die Nutzung zu analysieren.' : 'Helps us analyze usage.'"></span></li>
+        <li><strong>Marketing:</strong> <span x-text="lang === 'de' ? 'Für personalisierte Werbung.' : 'For personalized ads.'"></span></li>
+        <li><strong>Preferences:</strong> <span x-text="lang === 'de' ? 'Speichert Ihre Einstellungen.' : 'Stores your preferences.'"></span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="flex flex-col md:flex-row gap-2 mt-2 md:mt-0">
+    <button @click="open = false; acceptAllCookies()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Alle akzeptieren</button>
+    <button @click="open = false; saveCookiePreferences()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">Auswahl speichern</button>
+    <button @click="lang = lang === 'de' ? 'en' : 'de'" class="text-xs underline text-blue-600">DE/EN</button>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.cookie.includes('cookie_consent=true')) {
+    document.getElementById('cookie-banner').style.display = 'none';
+  }
+});
+function acceptAllCookies() {
+  setCookieConsent();
+  sendConsent({essential: true, analytics: true, marketing: true, preferences: true});
+}
+function saveCookiePreferences() {
+  setCookieConsent();
+  sendConsent({essential: true, analytics: false, marketing: false, preferences: false});
+}
+function setCookieConsent() {
+  document.cookie = "cookie_consent=true; path=/; max-age=31536000";
+}
+function sendConsent(data) {
+  fetch('/gdpr/cookie-consent/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify(data)
+  }).then(() => location.reload());
+}
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script> 

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ doc.get_doc_type_display }}</h1>
+  <div class="prose max-w-none">{{ doc.content|safe }}</div>
+  <p class="text-xs text-gray-400 mt-4">{% trans "Version" %}: {{ doc.version }} | {% trans "Published" %}: {{ doc.published_at }}</p>
+{% endblock %} 

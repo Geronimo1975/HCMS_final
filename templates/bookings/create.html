@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Book a Service" %}{% endblock %}
+
+{% block breadcrumbs %}
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <a href="{% url 'services:list' %}" class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+            {% trans "Services" %}
+        </a>
+    </div>
+</li>
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <span class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+            {% trans "Book a Service" %}
+        </span>
+    </div>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                {% trans "Book a Service" %}
+            </h1>
+        </div>
+
+        <form method="post" class="p-6" x-data="bookingForm()">
+            {% csrf_token %}
+            
+            <!-- Service Selection -->
+            <div class="mb-6">
+                <label for="id_service" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {% trans "Select Service" %}
+                </label>
+                <select name="service" id="id_service" required
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
+                        x-model="selectedService"
+                        @change="updateAvailableSlots()">
+                    <option value="">{% trans "Choose a service..." %}</option>
+                    {% for service in services %}
+                    <option value="{{ service.id }}" 
+                            data-duration="{{ service.duration }}"
+                            data-price="{{ service.price }}"
+                            data-currency="{{ service.currency }}">
+                        {{ service.name }} - {{ service.price }} {{ service.currency }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Provider Selection -->
+            <div class="mb-6">
+                <label for="id_provider" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {% trans "Select Provider" %}
+                </label>
+                <select name="provider" id="id_provider" required
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
+                        x-model="selectedProvider"
+                        @change="updateAvailableSlots()">
+                    <option value="">{% trans "Choose a provider..." %}</option>
+                    {% for provider in providers %}
+                    <option value="{{ provider.id }}">
+                        {{ provider.get_full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Selection -->
+            <div class="mb-6">
+                <label for="id_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {% trans "Select Date" %}
+                </label>
+                <input type="date" name="date" id="id_date" required
+                       class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
+                       x-model="selectedDate"
+                       min="{{ min_date|date:'Y-m-d' }}"
+                       @change="updateAvailableSlots()">
+            </div>
+
+            <!-- Time Slot Selection -->
+            <div class="mb-6" x-show="availableSlots.length > 0">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {% trans "Available Time Slots" %}
+                </label>
+                <div class="mt-2 grid grid-cols-4 gap-2">
+                    <template x-for="slot in availableSlots" :key="slot.id">
+                        <button type="button"
+                                class="px-3 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                                :class="selectedTimeSlot === slot.id ? 
+                                    'bg-primary-600 text-white' : 
+                                    'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+                                @click="selectTimeSlot(slot.id)">
+                            <span x-text="formatTime(slot.start_time)"></span>
+                        </button>
+                    </template>
+                </div>
+                <input type="hidden" name="start_time" :value="selectedTimeSlot">
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-6">
+                <label for="id_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {% trans "Special Requests" %}
+                </label>
+                <textarea name="notes" id="id_notes" rows="3"
+                          class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
+                          placeholder="{% trans 'Any special requests or notes...' %}"></textarea>
+            </div>
+
+            <!-- Summary -->
+            <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg" x-show="selectedService">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    {% trans "Booking Summary" %}
+                </h3>
+                <dl class="space-y-2">
+                    <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Service" %}</dt>
+                        <dd class="text-sm text-gray-900 dark:text-white" x-text="getServiceName()"></dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Duration" %}</dt>
+                        <dd class="text-sm text-gray-900 dark:text-white" x-text="getServiceDuration() + ' minutes'"></dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400">{% trans "Price" %}</dt>
+                        <dd class="text-sm text-gray-900 dark:text-white" x-text="getServicePrice()"></dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                        :disabled="!isFormValid()">
+                    {% trans "Confirm Booking" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function bookingForm() {
+    return {
+        selectedService: '',
+        selectedProvider: '',
+        selectedDate: '',
+        selectedTimeSlot: null,
+        availableSlots: [],
+        
+        async updateAvailableSlots() {
+            if (!this.selectedService || !this.selectedDate) return;
+            
+            try {
+                const response = await fetch(`/bookings/api/available-slots/?service_id=${this.selectedService}&date=${this.selectedDate}`);
+                const data = await response.json();
+                this.availableSlots = data.slots;
+            } catch (error) {
+                console.error('Error fetching available slots:', error);
+            }
+        },
+        
+        selectTimeSlot(slotId) {
+            this.selectedTimeSlot = slotId;
+        },
+        
+        formatTime(timeString) {
+            return new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        },
+        
+        getServiceName() {
+            const select = document.getElementById('id_service');
+            const option = select.options[select.selectedIndex];
+            return option ? option.text.split(' - ')[0] : '';
+        },
+        
+        getServiceDuration() {
+            const select = document.getElementById('id_service');
+            const option = select.options[select.selectedIndex];
+            return option ? option.dataset.duration : '';
+        },
+        
+        getServicePrice() {
+            const select = document.getElementById('id_service');
+            const option = select.options[select.selectedIndex];
+            if (!option) return '';
+            const [_, price] = option.text.split(' - ');
+            return price;
+        },
+        
+        isFormValid() {
+            return this.selectedService && 
+                   this.selectedProvider && 
+                   this.selectedDate && 
+                   this.selectedTimeSlot;
+        }
+    }
+}
+</script>
+{% endblock %}
+{% endblock %} 

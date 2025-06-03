@@ -1,0 +1,27 @@
+<div x-data="{ open: false, messages: [
+    { from: 'bot', text: '{% trans "Bun venit la SalonManager! Cu ce vă pot ajuta?" %}' }
+], input: '' }" class="fixed bottom-6 right-6 z-50">
+    <!-- Floating Button -->
+    <button @click="open = !open" class="bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary-400">
+        <svg x-show="!open" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        <svg x-show="open" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+    <!-- Chat Window -->
+    <div x-show="open" x-transition class="w-80 h-96 bg-white dark:bg-gray-900 rounded-lg shadow-lg flex flex-col mt-4">
+        <div class="flex items-center justify-between px-4 py-2 bg-primary-600 rounded-t-lg">
+            <span class="text-white font-semibold">SalonManager Chatbot</span>
+            <button @click="open = false" class="text-white hover:text-gray-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+            <template x-for="(msg, idx) in messages" :key="idx">
+                <div :class="msg.from === 'bot' ? 'text-left' : 'text-right'">
+                    <span :class="msg.from === 'bot' ? 'inline-block bg-primary-100 text-primary-800 dark:bg-primary-700 dark:text-white px-3 py-2 rounded-lg' : 'inline-block bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-lg'" x-text="msg.text"></span>
+                </div>
+            </template>
+        </div>
+        <form @submit.prevent="if(input.trim()){messages.push({from:'user',text:input});messages.push({from:'bot',text:'{% trans 'Mulțumim pentru mesaj! Un operator vă va răspunde în curând.' %}'});input='';$nextTick(()=>{$refs.input.focus();});}" class="p-2 border-t border-gray-200 dark:border-gray-700 flex">
+            <input x-ref="input" x-model="input" type="text" class="flex-1 rounded-l-lg px-3 py-2 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:bg-gray-800 dark:text-white" placeholder="{% trans 'Scrieți un mesaj...' %}" autocomplete="off">
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-r-lg">&rarr;</button>
+        </form>
+    </div>
+</div> 

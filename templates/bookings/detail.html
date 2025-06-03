@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Booking Details" %}{% endblock %}
+
+{% block breadcrumbs %}
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <a href="{% url 'bookings:list' %}" class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+            {% trans "Bookings" %}
+        </a>
+    </div>
+</li>
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <span class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+            {% trans "Booking Details" %}
+        </span>
+    </div>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+    <!-- Booking Header -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    {{ booking.service.name }}
+                </h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ booking.start_time|date:"F j, Y" }} at {{ booking.start_time|time:"H:i" }}
+                </p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    {% if booking.status == 'confirmed' %}
+                        bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                    {% elif booking.status == 'pending' %}
+                        bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                    {% elif booking.status == 'cancelled' %}
+                        bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                    {% elif booking.status == 'completed' %}
+                        bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                    {% else %}
+                        bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200
+                    {% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+                {% if booking.status in 'pending,confirmed' %}
+                <div class="flex space-x-2">
+                    <a href="{% url 'bookings:update' booking.pk %}"
+                       class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        {% trans "Reschedule" %}
+                    </a>
+                    <a href="{% url 'bookings:cancel' booking.pk %}"
+                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        {% trans "Cancel" %}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Details -->
+    <div class="px-6 py-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Service Information -->
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    {% trans "Service Information" %}
+                </h2>
+                <dl class="space-y-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            {% trans "Service" %}
+                        </dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {{ booking.service.name }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            {% trans "Duration" %}
+                        </dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {{ booking.service.duration }} {% trans "minutes" %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            {% trans "Price" %}
+                        </dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {{ booking.price }} {{ booking.currency }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Provider Information -->
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    {% trans "Provider Information" %}
+                </h2>
+                <dl class="space-y-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            {% trans "Provider" %}
+                        </dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {{ booking.provider.get_full_name }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            {% trans "Business" %}
+                        </dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {{ booking.business.name }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if booking.notes %}
+        <div class="mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                {% trans "Notes" %}
+            </h2>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                {{ booking.notes }}
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Payment Information -->
+        {% if booking.payment %}
+        <div class="mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                {% trans "Payment Information" %}
+            </h2>
+            <dl class="space-y-4">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        {% trans "Status" %}
+                    </dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {{ booking.payment.get_status_display }}
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        {% trans "Payment Method" %}
+                    </dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {{ booking.payment.payment_method }}
+                    </dd>
+                </div>
+                {% if booking.payment.transaction_id %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        {% trans "Transaction ID" %}
+                    </dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {{ booking.payment.transaction_id }}
+                    </dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

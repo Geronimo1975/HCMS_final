@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Our Services" %}{% endblock %}
+
+{% block breadcrumbs %}
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <span class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400">{% trans "Services" %}</span>
+    </div>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+    <!-- Search and Filter Section -->
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+            <!-- Search -->
+            <div class="flex-1 max-w-lg">
+                <div class="relative">
+                    <input type="text" 
+                           x-model="searchQuery"
+                           placeholder="{% trans 'Search services...' %}"
+                           class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="flex space-x-4">
+                <select x-model="selectedCategory"
+                        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <option value="">{% trans "All Categories" %}</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Sort -->
+                <select x-model="sortBy"
+                        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <option value="name">{% trans "Name" %}</option>
+                    <option value="price_asc">{% trans "Price: Low to High" %}</option>
+                    <option value="price_desc">{% trans "Price: High to Low" %}</option>
+                    <option value="duration">{% trans "Duration" %}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for service in services %}
+            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform duration-200 hover:scale-105"
+                 x-show="filterService('{{ service.name }}', '{{ service.category.id }}')">
+                <!-- Service Image -->
+                <div class="relative h-48">
+                    <img src="{{ service.image.url }}" 
+                         alt="{{ service.name }}"
+                         class="w-full h-full object-cover">
+                    {% if service.is_popular %}
+                    <div class="absolute top-2 right-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                            {% trans "Popular" %}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Service Info -->
+                <div class="p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        {{ service.name }}
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        {{ service.description|truncatewords:20 }}
+                    </p>
+                    
+                    <!-- Service Details -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm text-gray-600 dark:text-gray-300">
+                                {{ service.duration }} {% trans "min" %}
+                            </span>
+                        </div>
+                        <div class="text-lg font-semibold text-primary-600 dark:text-primary-400">
+                            {{ service.price }} {% trans "RON" %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-2">
+                        <a href="{% url 'service_detail' service.slug %}"
+                           class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            {% trans "Details" %}
+                        </a>
+                        <button @click="bookService('{{ service.id }}')"
+                                class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-700 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            {% trans "Book Now" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Booking Modal -->
+<div x-data="{ showBookingModal: false, selectedService: null }"
+     x-show="showBookingModal"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     x-cloak>
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    {% trans "Book Service" %}
+                </h3>
+                <!-- Booking form will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('services', () => ({
+        searchQuery: '',
+        selectedCategory: '',
+        sortBy: 'name',
+        
+        filterService(name, categoryId) {
+            const matchesSearch = name.toLowerCase().includes(this.searchQuery.toLowerCase());
+            const matchesCategory = !this.selectedCategory || categoryId === this.selectedCategory;
+            return matchesSearch && matchesCategory;
+        },
+        
+        bookService(serviceId) {
+            this.showBookingModal = true;
+            this.selectedService = serviceId;
+        }
+    }))
+})
+</script>
+{% endblock %} 

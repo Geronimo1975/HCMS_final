@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ service.name }}{% endblock %}
+
+{% block breadcrumbs %}
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <a href="{% url 'services' %}" class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+            {% trans "Services" %}
+        </a>
+    </div>
+</li>
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <span class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400">{{ service.name }}</span>
+    </div>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+    <!-- Service Header -->
+    <div class="relative h-96">
+        <img src="{{ service.image.url }}" 
+             alt="{{ service.name }}"
+             class="w-full h-full object-cover">
+        {% if service.is_popular %}
+        <div class="absolute top-4 right-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                {% trans "Popular" %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="p-6">
+        <!-- Service Title and Price -->
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    {{ service.name }}
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center text-gray-600 dark:text-gray-300">
+                        <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>{{ service.duration }} {% trans "minutes" %}</span>
+                    </div>
+                    <div class="flex items-center text-gray-600 dark:text-gray-300">
+                        <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>{{ service.price }} {% trans "RON" %}</span>
+                    </div>
+                </div>
+            </div>
+            <button @click="showBookingModal = true"
+                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                {% trans "Book Now" %}
+            </button>
+        </div>
+
+        <!-- Service Description -->
+        <div class="prose dark:prose-invert max-w-none mb-8">
+            {{ service.description|safe }}
+        </div>
+
+        <!-- Service Features -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    {% trans "What's Included" %}
+                </h3>
+                <ul class="space-y-3">
+                    {% for feature in service.features.all %}
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-gray-600 dark:text-gray-300">{{ feature.name }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    {% trans "What to Expect" %}
+                </h3>
+                <ul class="space-y-3">
+                    {% for step in service.steps.all %}
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-300 flex items-center justify-center text-sm font-medium mr-2">
+                            {{ forloop.counter }}
+                        </span>
+                        <span class="text-gray-600 dark:text-gray-300">{{ step.description }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        {% if related_services %}
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                {% trans "You May Also Like" %}
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for related in related_services %}
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
+                    <img src="{{ related.image.url }}" 
+                         alt="{{ related.name }}"
+                         class="w-full h-48 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            {{ related.name }}
+                        </h3>
+                        <div class="flex justify-between items-center">
+                            <span class="text-primary-600 dark:text-primary-400 font-medium">
+                                {{ related.price }} {% trans "RON" %}
+                            </span>
+                            <a href="{% url 'service_detail' related.slug %}"
+                               class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
+                                {% trans "View Details" %} →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Booking Modal -->
+<div x-data="{ showBookingModal: false }"
+     x-show="showBookingModal"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     x-cloak>
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+                            {% trans "Book" %} {{ service.name }}
+                        </h3>
+                        
+                        <form method="post" action="{% url 'book_service' service.slug %}" class="space-y-4">
+                            {% csrf_token %}
+                            
+                            <!-- Date Picker -->
+                            <div>
+                                <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {% trans "Date" %}
+                                </label>
+                                <input type="date" 
+                                       name="date" 
+                                       id="date"
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white">
+                            </div>
+
+                            <!-- Time Slot -->
+                            <div>
+                                <label for="time_slot" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {% trans "Time" %}
+                                </label>
+                                <select name="time_slot" 
+                                        id="time_slot"
+                                        required
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="">{% trans "Select a time" %}</option>
+                                    {% for slot in available_slots %}
+                                    <option value="{{ slot.id }}">{{ slot.time }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Notes -->
+                            <div>
+                                <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {% trans "Special Requests" %}
+                                </label>
+                                <textarea name="notes" 
+                                          id="notes"
+                                          rows="3"
+                                          class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"></textarea>
+                            </div>
+
+                            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                <button type="submit"
+                                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                    {% trans "Confirm Booking" %}
+                                </button>
+                                <button type="button"
+                                        @click="showBookingModal = false"
+                                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm">
+                                    {% trans "Cancel" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('serviceDetail', () => ({
+        showBookingModal: false,
+        
+        init() {
+            // Initialize any date/time pickers or other UI components
+        }
+    }))
+})
+</script>
+{% endblock %} 

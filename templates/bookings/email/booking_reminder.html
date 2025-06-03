@@ -1,0 +1,82 @@
+{% load i18n %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .reminder {
+            font-weight: bold;
+            color: #4F46E5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{% trans "Booking Reminder" %}</h1>
+    </div>
+
+    <div class="content">
+        <p>{% trans "Dear" %} {{ booking.customer.get_full_name }},</p>
+
+        <p class="reminder">
+            {% trans "This is a friendly reminder about your upcoming booking tomorrow." %}
+        </p>
+
+        <h2>{% trans "Booking Details" %}</h2>
+        <ul>
+            <li><strong>{% trans "Service" %}:</strong> {{ booking.service.name }}</li>
+            <li><strong>{% trans "Date" %}:</strong> {{ booking.start_time|date:"F j, Y" }}</li>
+            <li><strong>{% trans "Time" %}:</strong> {{ booking.start_time|time:"H:i" }}</li>
+            <li><strong>{% trans "Provider" %}:</strong> {{ booking.provider.get_full_name }}</li>
+            <li><strong>{% trans "Business" %}:</strong> {{ booking.business.name }}</li>
+            <li><strong>{% trans "Duration" %}:</strong> {{ booking.service.duration }} {% trans "minutes" %}</li>
+        </ul>
+
+        <p>{% trans "Please arrive 5-10 minutes before your appointment time." %}</p>
+
+        {% if booking.notes %}
+        <p><strong>{% trans "Special Notes" %}:</strong> {{ booking.notes }}</p>
+        {% endif %}
+
+        <a href="{{ booking_url }}" class="button">{% trans "View Booking Details" %}</a>
+    </div>
+
+    <div class="footer">
+        <p>{% trans "This is an automated message, please do not reply." %}</p>
+        <p>{% trans "If you need to reschedule or cancel your booking, please visit our website or contact us at" %} {{ support_email }}</p>
+    </div>
+</body>
+</html> 

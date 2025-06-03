@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "My Bookings" %}{% endblock %}
+
+{% block breadcrumbs %}
+<li>
+    <div class="flex items-center">
+        <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <span class="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400">{% trans "Bookings" %}</span>
+    </div>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 dark:border-gray-700">
+        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+            <button @click="activeTab = 'upcoming'"
+                    :class="{ 'border-primary-500 text-primary-600 dark:text-primary-400': activeTab === 'upcoming',
+                             'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300': activeTab !== 'upcoming' }"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                {% trans "Upcoming" %}
+            </button>
+            <button @click="activeTab = 'past'"
+                    :class="{ 'border-primary-500 text-primary-600 dark:text-primary-400': activeTab === 'past',
+                             'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300': activeTab !== 'past' }"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                {% trans "Past" %}
+            </button>
+        </nav>
+    </div>
+
+    <!-- Upcoming Bookings -->
+    <div x-show="activeTab === 'upcoming'" class="p-6">
+        {% if upcoming_bookings %}
+        <div class="space-y-6">
+            {% for booking in upcoming_bookings %}
+            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0">
+                                <img class="h-12 w-12 rounded-full" 
+                                     src="{{ booking.service.image.url }}" 
+                                     alt="{{ booking.service.name }}">
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                                    {{ booking.service.name }}
+                                </h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ booking.date|date:"F j, Y" }} at {{ booking.time_slot.time }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                {% trans "Confirmed" %}
+                            </span>
+                            <div class="flex space-x-2">
+                                <button @click="rescheduleBooking('{{ booking.id }}')"
+                                        class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    {% trans "Reschedule" %}
+                                </button>
+                                <button @click="cancelBooking('{{ booking.id }}')"
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    {% trans "Cancel" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{% trans "No upcoming bookings" %}</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{% trans "Get started by booking a service." %}</p>
+            <div class="mt-6">
+                <a href="{% url 'services' %}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    {% trans "Book a Service" %}
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Past Bookings -->
+    <div x-show="activeTab === 'past'" class="p-6">
+        {% if past_bookings %}
+        <div class="space-y-6">
+            {% for booking in past_bookings %}
+            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0">
+                                <img class="h-12 w-12 rounded-full" 
+                                     src="{{ booking.service.image.url }}" 
+                                     alt="{{ booking.service.name }}">
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                                    {{ booking.service.name }}
+                                </h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ booking.date|date:"F j, Y" }} at {{ booking.time_slot.time }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                                {% trans "Completed" %}
+                            </span>
+                            <button @click="bookAgain('{{ booking.service.id }}')"
+                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                {% trans "Book Again" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{% trans "No past bookings" %}</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{% trans "Your booking history will appear here." %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Reschedule Modal -->
+<div x-data="{ showRescheduleModal: false, bookingId: null }"
+     x-show="showRescheduleModal"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     x-cloak>
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+                            {% trans "Reschedule Booking" %}
+                        </h3>
+                        
+                        <form method="post" :action="'/bookings/' + bookingId + '/reschedule/'" class="space-y-4">
+                            {% csrf_token %}
+                            
+                            <!-- Date Picker -->
+                            <div>
+                                <label for="new_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {% trans "New Date" %}
+                                </label>
+                                <input type="date" 
+                                       name="new_date" 
+                                       id="new_date"
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white">
+                            </div>
+
+                            <!-- Time Slot -->
+                            <div>
+                                <label for="new_time_slot" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {% trans "New Time" %}
+                                </label>
+                                <select name="new_time_slot" 
+                                        id="new_time_slot"
+                                        required
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="">{% trans "Select a time" %}</option>
+                                    {% for slot in available_slots %}
+                                    <option value="{{ slot.id }}">{{ slot.time }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                <button type="submit"
+                                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                    {% trans "Confirm Reschedule" %}
+                                </button>
+                                <button type="button"
+                                        @click="showRescheduleModal = false"
+                                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:w-auto sm:text-sm">
+                                    {% trans "Cancel" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div x-data="{ showCancelModal: false, bookingId: null }"
+     x-show="showCancelModal"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     x-cloak>
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600 dark:text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            {% trans "Cancel Booking" %}
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                {% trans "Are you sure you want to cancel this booking? This action cannot be undone." %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <form method="post" :action="'/bookings/' + bookingId + '/cancel/'">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        {% trans "Cancel Booking" %}
+                    </button>
+                </form>
+                <button type="button"
+                        @click="showCancelModal = false"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    {% trans "Keep Booking" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('bookings', () => ({
+        activeTab: 'upcoming',
+        showRescheduleModal: false,
+        showCancelModal: false,
+        bookingId: null,
+        
+        rescheduleBooking(id) {
+            this.bookingId = id;
+            this.showRescheduleModal = true;
+        },
+        
+        cancelBooking(id) {
+            this.bookingId = id;
+            this.showCancelModal = true;
+        },
+        
+        bookAgain(serviceId) {
+            window.location.href = `/services/${serviceId}/book/`;
+        }
+    }))
+})
+</script>
+{% endblock %} 

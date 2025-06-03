@@ -1,0 +1,209 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" 
+      :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Salon Management{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        [x-cloak] { display: none !important; }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-gray-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{% url 'home' %}" class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                            SalonManager
+                        </a>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}border-primary-500 text-gray-900 dark:text-white{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            {% trans "Home" %}
+                        </a>
+                        <a href="{% url 'services:list' %}" class="{% if 'services' in request.path %}border-primary-500 text-gray-900 dark:text-white{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            {% trans "Services" %}
+                        </a>
+                        <a href="{% url 'bookings:list' %}" class="{% if 'bookings' in request.path %}border-primary-500 text-gray-900 dark:text-white{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            {% trans "Bookings" %}
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Right side navigation -->
+                <div class="flex items-center">
+                    <!-- Language Switcher -->
+                    <div class="mr-4">
+                        <form action="{% url 'set_language' %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <select name="language" onchange="this.form.submit()" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                {% get_current_language as LANGUAGE_CODE %}
+                                {% get_available_languages as LANGUAGES %}
+                                {% for lang in LANGUAGES %}
+                                    <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %}selected{% endif %}>
+                                        {{ lang.1 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    
+                    <!-- Dark Mode Toggle -->
+                    <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" 
+                            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700">
+                        <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                        <svg x-show="darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- User Menu -->
+                    {% if user.is_authenticated %}
+                        <div class="ml-4 relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                <span class="sr-only">{% trans "Open user menu" %}</span>
+                                <div class="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                                    {{ user.email|first|upper }}
+                                </div>
+                            </button>
+                            
+                            <!-- Dropdown menu -->
+                            <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                {# <a href="{% url 'account_profile' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    {% trans "Profile" %}
+                                </a> #}
+                                <a href="{% url 'account_logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    {% trans "Sign out" %}
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="ml-4 flex items-center space-x-4">
+                            <a href="{% url 'account_login' %}" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white">
+                                {% trans "Sign in" %}
+                            </a>
+                            <a href="{% url 'account_signup' %}" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                                {% trans "Sign up" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="p-4 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 shadow-lg mt-8">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "About Us" %}</h3>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        {% trans "Your trusted partner in salon management solutions." %}
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Quick Links" %}</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{% url 'home' %}" class="text-gray-600 dark:text-gray-300 hover:text-primary-500">
+                                {% trans "Home" %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'services:list' %}" class="text-gray-600 dark:text-gray-300 hover:text-primary-500">
+                                {% trans "Services" %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'bookings:list' %}" class="text-gray-600 dark:text-gray-300 hover:text-primary-500">
+                                {% trans "Bookings" %}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Contact" %}</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-600 dark:text-gray-300">
+                            Email: support@salonmanagement.de
+                        </li>
+                        <li class="text-gray-600 dark:text-gray-300">
+                            {% trans "Phone" %}: +49 123 456 789
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-center text-gray-500 dark:text-gray-400">
+                    &copy; {% now "Y" %} SalonManager. {% trans "All rights reserved." %}
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cookie Consent Banner -->
+    {% include "partials/cookie_banner.html" %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
